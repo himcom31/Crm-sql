@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { login } = require('../controllers/authController');
-const User = require('../models/User');
+const { adminLogin, clientLogin} = require('../controllers/authController');
+const User = require('../models/Admin');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken'); 
 
-// @route   POST /api/auth/login
-router.post('/login', login);
+
+router.post('/admin/login', adminLogin);
+router.post('/client/login', clientLogin);
+
+
+
+//@route   POST /api/auth/login
+// router.post('/login', login);
 
 // @route   POST /api/auth/register-admin
 router.post('/register-admin', async (req, res) => {

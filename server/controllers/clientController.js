@@ -1,4 +1,4 @@
-const { Sale, User, Product, Agent } = require('../models'); 
+const { Sale, Client, Product, Agent } = require('../models'); // User ko Client se replace kiya
 const { Sequelize, Op } = require('sequelize');
 
 exports.getClientPurchases = async (req, res) => {
@@ -11,12 +11,12 @@ exports.getClientPurchases = async (req, res) => {
             include: [
                 {
                     model: Product,
-                    as: 'product', // 👈 Yahan apne model wala alias check karein
+                    as: 'product', 
                     attributes: ['name', 'Date_Mature']
                 },
                 {
                     model: Agent,
-                    as: 'agent', // 👈 'Fetch Purchases Error' ka solution yahi hai
+                    as: 'agent', 
                     attributes: ['name']
                 }
             ],
@@ -38,7 +38,7 @@ exports.getClientPurchases = async (req, res) => {
                     `), 
                     'status'
                 ],
-                // Aliases using 'as' name in col
+                // Aliases
                 [Sequelize.col('product.Date_Mature'), 'expiryDate'],
                 [Sequelize.col('product.name'), 'productName'],
                 [Sequelize.col('agent.name'), 'agentName']
@@ -60,7 +60,8 @@ exports.getClientPurchases = async (req, res) => {
 
 exports.getClientProfile = async (req, res) => {
     try {
-        const client = await User.findByPk(req.user.id, {
+        // Ab hum 'Client' model ka use karenge na ki User ka
+        const client = await Client.findByPk(req.user.id, {
             attributes: { exclude: ['password'] } 
         });
         

@@ -10,6 +10,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import Notifications from "./components/Notifications";
 import ProfilePage from "./pages/ProfilePage";
 import ClientLayout from "./components/ClientLayout";
+import ClientPages from "./pages/ClientPages"
 
 // ✅ Protected Route
 const ProtectedRoute = ({ children, role }) => {
@@ -33,6 +34,8 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<LoginPage />} />
+          <Route path="/client-pages" element={<ClientPages />} />
+
         {/* <Route path="/client/profile" element={<ProfilePage/>}/> */}
   <Route path="/client" element={<ClientLayout />}>
           {/* Ye saare pages Navbar ke niche khulenge */}

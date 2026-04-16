@@ -1,18 +1,19 @@
 import { useState, useContext } from "react";
 import { AppContext } from "../context/AppContext";
 import { motion } from "framer-motion";
-import { Lock, Mail, User, ShieldCheck, Loader2, Users } from "lucide-react";
+import { Lock, Mail, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // 1. useNavigate import karein
+import { useNavigate } from "react-router-dom";
+
 const API_BAS = import.meta.env.VITE_API_URL;
 
-export default function LoginPage() {
-  // setView ko hata diya gaya hai
-  const { setUserRole, setCurrentUser, addNotification , setEmail} = useContext(AppContext);
-  const [role, setRole] = useState("client"); 
+export default function AdminLoginPage() {
+  const { setUserRole, setCurrentUser, addNotification, setEmail } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
-  
-  const navigate = useNavigate(); // 2. Navigate function initialize karein
+  const navigate = useNavigate();
+
+  // Role yahan fixed "admin" rahega
+  const role = "admin";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,37 +23,29 @@ export default function LoginPage() {
     const password = e.target.password.value;
 
     try {
-      // Backend API call
-      const response = await axios.post(`${API_BAS}/api/auth/login`, {
+      const response = await axios.post(`${API_BAS}/api/auth/admin/login`, {
         email,
         password,
-        role 
+        role
       });
 
       const { token, user } = response.data;
 
-      // Token aur user data save karein
       localStorage.setItem("token", token);
       localStorage.setItem("userData", JSON.stringify(user));
-      localStorage.setItem("userRole", user.role); 
-      //localStorage.setItem("email",user.email)// Role persistence ke liye zaruri hai
+      localStorage.setItem("userRole", user.role);
 
-      // Context states update 
       setUserRole(user.role);
       setCurrentUser(user);
-      setEmail(user.email); // Email context mein set karein
-      addNotification(`Welcome back, ${user.name}!`);
+      setEmail(user.email);
+      addNotification(`Welcome back, Administrator ${user.name}!`);
 
-      // 3. setView ki jagah navigate() ka use karein
-      if (user.role === "admin") {
-        navigate("/admin"); // Admin route par bhejein
-      } else {
-        navigate("/client"); // Client route par bhejein
-      }
+      // Admin page par navigate karein
+      navigate("/admin");
 
     } catch (error) {
       console.error("Login Error:", error);
-      const msg = error.response?.data?.message || "Login failed. Please try again.";
+      const msg = error.response?.data?.message || "Admin access denied. Please check credentials.";
       addNotification(msg);
     } finally {
       setLoading(false);
@@ -60,70 +53,49 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
-      {/* Background shapes fixed positions */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 via-indigo-900 to-slate-900 p-4">
+      {/* Subtle Background Animation */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-72 h-72 bg-white/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-[-10%] left-[-10%] w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
       </div>
 
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative w-full max-w-md bg-white/90 backdrop-blur-lg shadow-2xl rounded-2xl overflow-hidden"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl overflow-hidden"
       >
-        <div className="flex border-b">
-          <button 
-            type="button"
-            onClick={() => setRole("client")}
-            className={`flex-1 py-4 text-sm font-semibold transition-all ${role === "client" ? "text-purple-600 border-b-2 border-purple-600 bg-purple-50" : "text-gray-500 hover:bg-gray-50"}`}
-          >
-            Client Access
-          </button>
-          <button 
-            type="button"
-            onClick={() => setRole("admin")}
-            className={`flex-1 py-4 text-sm font-semibold transition-all ${role === "admin" ? "text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50" : "text-gray-500 hover:bg-gray-50"}`}
-          >
-            Admin Portal
-          </button>
-        </div>
-
         <div className="p-8">
           <div className="text-center mb-8">
-            <motion.div 
-              key={role}
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="inline-block p-4 rounded-full bg-gradient-to-tr from-purple-100 to-indigo-100 text-purple-600 mb-4"
-            >
-              {role === "admin" ? <ShieldCheck size={32} /> : <User size={32} />}
-            </motion.div>
-            <h2 className="text-2xl font-bold text-gray-800 tracking-tight">
-              {role === "admin" ? "ADMIN LOGIN" : "CLIENT LOGIN"}
+            <div className="inline-block p-4 rounded-2xl bg-indigo-500/20 text-indigo-400 mb-4 border border-indigo-500/30">
+              <ShieldCheck size={40} />
+            </div>
+            <h2 className="text-3xl font-bold text-white tracking-tight">
+              ADMIN PORTAL
             </h2>
+            <p className="text-indigo-200/60 text-sm mt-2">Authorized Personnel Only</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="relative">
-              <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+              <Mail className="absolute left-3 top-3.5 text-indigo-300/50" size={20} />
               <input
                 name="email"
                 type="email"
                 required
-                placeholder="Email Address"
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-400"
+                placeholder="Admin Email"
+                className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-gray-500"
               />
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+              <Lock className="absolute left-3 top-3.5 text-indigo-300/50" size={20} />
               <input
                 name="password"
                 type="password"
                 required
                 placeholder="Password"
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-400"
+                className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-gray-500"
               />
             </div>
 
@@ -131,20 +103,29 @@ export default function LoginPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               disabled={loading}
-              className={`w-full py-3 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all ${
-                role === "admin" 
-                ? "bg-gradient-to-r from-indigo-600 to-blue-600" 
-                : "bg-gradient-to-r from-purple-600 to-pink-600"
-              } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+              className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all bg-indigo-600 hover:bg-indigo-500 ${
+                loading ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : "Sign In"}
+              {loading ? <Loader2 className="animate-spin" size={20} /> : "Enter Dashboard"}
             </motion.button>
           </form>
+
+          {/* Client Login Link - Redirects to Client Login Page */}
+          <div className="mt-8 pt-6 border-t border-white/10 text-center">
+            <button 
+              onClick={() => navigate("/client-pages")} // Aapka client login route yahan aayega
+              className="text-indigo-300 hover:text-white text-sm font-medium flex items-center justify-center gap-2 mx-auto transition-colors group"
+            >
+              Are you a Client? <span className="underline">Client Login</span>
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
         </div>
 
-        <div className="p-4 bg-gray-50 text-center text-xs text-gray-400">
-          Secure CRM Access &copy; 2026
-        </div>
+        <div className="p-4 bg-black/20 text-center text-[10px] text-gray-500 uppercase tracking-widest">
+          Secure System Access &copy; 2026
+        </div> 
       </motion.div>
     </div>
   );

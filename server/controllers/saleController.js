@@ -1,4 +1,4 @@
-const { Sale, Product, User, Agent, sequelize } = require('../models'); // Sequelize instance import karein
+const { Sale, Product, Client, Agent, sequelize } = require('../models'); // User ko Client se replace kiya
 const { Op } = require('sequelize');
 const moment = require('moment');
 
@@ -28,9 +28,9 @@ exports.createSale = async (req, res) => {
                 commissionPercentage: commissionLabel,
                 commissionAmount: calculatedCommission,
                 totalAmount: productData.price,
-                paidAmount: productData.price, // Fresh sale assumed full paid
+                paidAmount: productData.price, 
                 pendingAmount: 0,
-                createdBy: req.user.id
+                createdBy: req.user.id // Ye req.user ab Admin model se aayega (Auth middleware check karein)
             }, { transaction });
 
             salesRecords.push(newSale);
@@ -49,9 +49,10 @@ exports.getSalesHistory = async (req, res) => {
     try {
         const sales = await Sale.findAll({
             include: [
-                { model: User, as: 'client', attributes: ['name', 'email'] },
+                // User ki jagah Client model
+                { model: Client, as: 'client', attributes: ['name', 'email'] }, 
                 { model: Product, attributes: ['name', 'price'] },
-                { model: Agent,as: 'agent' ,attributes: ['name'] }
+                { model: Agent, as: 'agent', attributes: ['name'] }
             ],
             order: [['createdAt', 'DESC']]
         });
@@ -75,12 +76,13 @@ exports.getExpiringSales = async (req, res) => {
 
         const expiringSales = await Sale.findAll({
             include: [
-                { model: User, as: 'client', attributes: ['id', 'name', 'email'] }, // attributes mein id zaroori hai
-                { model: Agent, as: 'agent', attributes: ['id', 'name'] }, // 'as: agent' added here
+                // User ki jagah Client model
+                { model: Client, as: 'client', attributes: ['id', 'name', 'email'] }, 
+                { model: Agent, as: 'agent', attributes: ['id', 'name'] },
                 { 
                     model: Product, 
                     as: 'product',
-                    attributes: ['id', 'name', 'price', 'Date_Mature'], // attributes explicit karein
+                    attributes: ['id', 'name', 'price', 'Date_Mature'],
                     where: { Date_Mature: { [Op.lte]: end.toDate() } } 
                 }
             ],
@@ -99,7 +101,7 @@ exports.getExpiringSales = async (req, res) => {
     }
 };
 
-// ✅ 4. PROCESS SETTLEMENT AND RENEWAL (Complex Logic)
+// ✅ 4. PROCESS SETTLEMENT AND RENEWAL
 exports.processSettlementAndRenewal = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
@@ -112,7 +114,6 @@ exports.processSettlementAndRenewal = async (req, res) => {
             return res.status(400).json({ success: false, message: "Missing Client or Products" });
         }
 
-        // A. Settlement Logic for Old Sale
         if (saleId) {
             const oldSale = await Sale.findByPk(saleId);
             if (oldSale) {
@@ -126,7 +127,6 @@ exports.processSettlementAndRenewal = async (req, res) => {
             }
         }
 
-        // B. New Sale / Renewal Creation
         const processedSales = [];
         for (let pid of productIds) {
             const productData = await Product.findByPk(pid);
@@ -154,7 +154,6 @@ exports.processSettlementAndRenewal = async (req, res) => {
 
             processedSales.push(newSale);
 
-            // C. Update Maturity Date in Product Table
             if (isRenewal) {
                 const currentMaturity = productData.Date_Mature || new Date();
                 await productData.update({

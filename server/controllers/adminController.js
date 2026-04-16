@@ -1,4 +1,4 @@
-const { User, Sale, Agent, Product } = require('../models'); // Sequelize models import karein
+const { Admin, Client, Sale, Agent, Product } = require('../models'); // Sahi models import karein
 const bcrypt = require('bcryptjs');
 const sendEmail = require('../utils/sendEmail');
 const { Sequelize, Op } = require('sequelize');
@@ -8,18 +8,18 @@ exports.createClient = async (req, res) => {
     const { name, email, mobile, password, ...otherInfo } = req.body;
 
     try {
-        // 1. Check if user already exists
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-            return res.status(400).json({ success: false, message: "Email already registered" });
+        // 1. Check if client already exists in Client table
+        const existingClient = await Client.findOne({ where: { email } });
+        if (existingClient) {
+            return res.status(400).json({ success: false, message: "Email already registered as Client" });
         }
 
         // 2. Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. Save Client to SQL Database
-        const newClient = await User.create({
+        // 3. Save to 'Client' Database (Ab 'User' nahi 'Client' table use hogi)
+        const newClient = await Client.create({
             ...req.body,
             password: hashedPassword,
             role: 'client'
@@ -40,6 +40,7 @@ exports.createClient = async (req, res) => {
         });
 
     } catch (err) {
+        console.error("Create Client Error:", err);
         res.status(500).json({ success: false, message: "Error creating client", error: err.message });
     }
 };
@@ -47,9 +48,9 @@ exports.createClient = async (req, res) => {
 // @desc    Get all clients
 exports.getAllClients = async (req, res) => {
     try {
-        const clients = await User.findAll({
-            where: { role: 'client' },
-            attributes: { exclude: ['password'] }, // MongoDB select('-password') ka replacement
+        // Ab Client model se data laayenge
+        const clients = await Client.findAll({
+            attributes: { exclude: ['password'] }, 
             order: [['createdAt', 'DESC']]
         });
 
@@ -71,13 +72,14 @@ exports.updateClient = async (req, res) => {
             delete updateData.password;
         }
 
-        const [updated] = await User.update(updateData, {
+        // 'Client' table update karein
+        const [updated] = await Client.update(updateData, {
             where: { id: req.params.id }
         });
 
         if (!updated) return res.status(404).json({ success: false, message: "Client not found" });
 
-        const updatedClient = await User.findByPk(req.params.id, { attributes: { exclude: ['password'] } });
+        const updatedClient = await Client.findByPk(req.params.id, { attributes: { exclude: ['password'] } });
 
         res.status(200).json({ success: true, data: updatedClient });
     } catch (err) {
@@ -85,18 +87,15 @@ exports.updateClient = async (req, res) => {
     }
 };
 
-// @desc    Dashboard Analytics (Aggregation replacement in SQL)
-
+// @desc    Dashboard Analytics
 exports.dashboard = async (req, res) => {
     try {
-        // 1. Total Revenue
         const totalRevenue = await Sale.sum('totalAmount');
-
-        // 2. Counts
         const totalAgents = await Agent.count();
-        const totalClients = await User.count({ where: { role: 'client' } });
+        
+        // Count from 'Client' table instead of User
+        const totalClients = await Client.count(); 
 
-        // 3. Monthly Revenue Logic
         const monthlyRevenue = await Sale.findAll({
             attributes: [
                 [Sequelize.fn('MONTH', Sequelize.col('investmentDate')), 'month'],
@@ -104,12 +103,11 @@ exports.dashboard = async (req, res) => {
             ],
             group: [Sequelize.fn('MONTH', Sequelize.col('investmentDate'))],
             order: [[Sequelize.fn('MONTH', Sequelize.col('investmentDate')), 'ASC']],
-            raw: true // Raw data easy handling ke liye
+            raw: true 
         });
 
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-        // 4. Top Agents (Association Handling)
         const topAgents = await Sale.findAll({
             attributes: [
                 'agentId',
@@ -118,10 +116,10 @@ exports.dashboard = async (req, res) => {
             ],
             include: [{ 
                 model: Agent, 
-                as: 'agent', // Ensure karein ki aapke model mein ye alias ho
+                as: 'agent', 
                 attributes: ['name'] 
             }],
-            group: ['agentId', 'agent.id'], // Case sensitive based on DB
+            group: ['agentId', 'agent.id'],
             order: [[Sequelize.fn('SUM', Sequelize.col('totalAmount')), 'DESC']],
             limit: 5
         });
@@ -135,7 +133,6 @@ exports.dashboard = async (req, res) => {
                 revenue: parseFloat(item.revenue || 0)
             })),
             agents: topAgents.map(a => ({
-                // Check if agent exists before accessing name
                 name: a.agent ? a.agent.name : "Unknown Agent", 
                 revenue: parseFloat(a.get('revenue') || 0),
                 deals: parseInt(a.get('deals') || 0)
@@ -151,7 +148,8 @@ exports.dashboard = async (req, res) => {
 // @desc    Get Admin Profile
 exports.getAdminProfile = async (req, res) => {
     try {
-        const admin = await User.findByPk(req.user.id, {
+        // Ab 'Admin' table mein check karein
+        const admin = await Admin.findByPk(req.user.id, {
             attributes: { exclude: ['password'] }
         });
         if (!admin) return res.status(404).json({ message: "Admin not found" });
@@ -166,9 +164,9 @@ exports.deleteClient = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // SQL destroy method
-        const deleted = await User.destroy({
-            where: { id: id, role: 'client' } // Protection: Sirf client delete ho sake
+        // 'Client' table se delete karein
+        const deleted = await Client.destroy({
+            where: { id: id } 
         });
 
         if (!deleted) {
