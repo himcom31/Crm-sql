@@ -12,7 +12,7 @@ const Sale = sequelize.define('Sale', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'users', // Table name for Clients
+            model: 'clients', // Table name for Clients
             key: 'id'
         }
     },
@@ -74,7 +74,7 @@ const Sale = sequelize.define('Sale', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'users', // Admin ID
+            model: 'admins', // Admin ID
             key: 'id'
         }
     }

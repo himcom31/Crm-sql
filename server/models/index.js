@@ -21,12 +21,16 @@ Agent.hasMany(Sale, { foreignKey: 'agentId', as: 'sales' });
 Sale.belongsTo(Agent, { foreignKey: 'agentId', as: 'agent' });
 
 // 4. Admin & Product (Product kis Admin ne create kiya)
-Admin.hasMany(Product, { foreignKey: 'createdBy', as: 'createdProducts' });
-Product.belongsTo(Admin, { foreignKey: 'createdBy', as: 'creator' });
+// Admin.hasMany(Product, { foreignKey: 'createdBy', as: 'createdProducts' });
+// Product.belongsTo(Admin, { foreignKey: 'createdBy', as: 'creator' });
 
 // 5. Admin & Sale (Sale ki entry kis Admin ne ki)
 Admin.hasMany(Sale, { foreignKey: 'createdBy', as: 'entries' });
 Sale.belongsTo(Admin, { foreignKey: 'createdBy', as: 'entryCreator' });
+
+
+Product.belongsTo(Admin, { foreignKey: 'createdBy', as: 'admin' });
+Admin.hasMany(Product, { foreignKey: 'createdBy' });
 
 module.exports = {
     sequelize,

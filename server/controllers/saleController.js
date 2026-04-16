@@ -51,7 +51,7 @@ exports.getSalesHistory = async (req, res) => {
             include: [
                 // User ki jagah Client model
                 { model: Client, as: 'client', attributes: ['name', 'email'] }, 
-                { model: Product, attributes: ['name', 'price'] },
+                { model: Product,as: 'product', attributes: ['name', 'price'] },
                 { model: Agent, as: 'agent', attributes: ['name'] }
             ],
             order: [['createdAt', 'DESC']]

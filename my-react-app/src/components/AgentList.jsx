@@ -272,9 +272,8 @@ export default function AgentList() {
                     onChange={(e) => setSelectedAgent({ ...selectedAgent, role: e.target.value })}
                     className="p-3 bg-[#f8f9fa] border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none"
                   >
-                    <option value="Sales Agent">Sales Agent</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Support">Support</option>
+                    <option value="Office Agent">Office Agent</option>
+                    <option value="Field Agent">Field Agent</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">

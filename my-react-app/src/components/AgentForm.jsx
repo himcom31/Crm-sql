@@ -17,8 +17,8 @@ export default function AgentForm() {
     name: "",
     email: "",
     phone: "",
-    role: "",
-    status: "",
+    role: "Office Agent",
+    status: "Active",
     Emr_phone: ""
   });
 

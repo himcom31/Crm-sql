@@ -37,7 +37,7 @@ const Product = sequelize.define('Product', {
         type: DataTypes.INTEGER, // User table ki Primary Key (id) ka type yahan hona chahiye
         allowNull: false,
         references: {
-            model: 'users', // Table name (plural) jisse link karna hai
+            model: 'admins', // Table name (plural) jisse link karna hai
             key: 'id'
         }
     }

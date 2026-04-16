@@ -113,12 +113,12 @@ const handleSettlePayment = async (sale) => {
                         <h2 className="text-3xl font-black text-[#1e293b] tracking-tight">Maturity & Settlement</h2>
                         <p className="text-[#64748b] text-sm font-medium">Process payments and renew customer assets.</p>
                     </div>
-                    <div className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-[#374e6b]">
+                    <div className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-[#3e536d]">
                         <span className="text-[10px] font-black uppercase text-[#94a3b8] px-2">Expiry UpTo:</span>
                         <input 
                             type="date" value={customDate} 
                             onChange={(e) => { setCustomDate(e.target.value); fetchExpiringSales('custom', e.target.value); }}
-                            className="bg-[#4f5860] border-none rounded-lg px-3 py-1.5 text-sm font-bold text-[#1e293b]"
+                            className="bg-[#4f5860] border-none rounded-lg px-3 py-1.5 text-sm font-bold text-[#dee1e6]"
                         />
                     </div>
                 </div>
